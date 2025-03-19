@@ -12,36 +12,19 @@ import {
   ResponsiveContainer,
 } from 'recharts';
 import { Card, CardContent } from './ui/card';
+import { 
+  formatNumberWithCommas, 
+  formatDateString, 
+  transformChartData, 
+  determineXAxisKey, 
+  sortChartDataByDate, 
+  CHART_COLORS 
+} from '../lib/chartUtils';
+import type { ChartDataPoint } from '../lib/types';
 
-// Custom colors for the chart
-const CHART_COLORS = [
-  '#8884d8',
-  '#82ca9d',
-  '#ffc658',
-  '#ff8042',
-  '#0088fe',
-  '#00c49f',
-  '#ffbb28',
-  '#ff8042',
-];
-
-// Helper function to format numbers with commas
-const formatNumberWithCommas = (value: number) => {
-  return value.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',');
-};
-
-// Helper function to format date strings, trimming time if present
-const formatDateString = (dateString: string) => {
-  if (!dateString) return dateString;
-  
-  // If it's a date with time (like TikTok's stat_time_day), extract just the date part
-  if (dateString.includes(' ')) {
-    return dateString.split(' ')[0];
-  }
-  
-  return dateString;
-};
-
+/**
+ * Component for displaying data in chart format (bar or line)
+ */
 interface ChartComponentProps {
   data: any[];
   metrics: string[];
@@ -55,62 +38,13 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
   chartType = 'bar',
   xAxisKey,
 }) => {
-  // Transform data to ensure metric values are numeric and flatten nested objects
-  const transformedData = useMemo(() => {
-    if (!data || data.length === 0) return [];
-    
-    console.log('ChartComponent: Transforming data for metrics:', metrics);
-    
-    return data.map(item => {
-      // Create a flat result object
-      const result: Record<string, any> = {};
-      
-      // Handle TikTok nested data structure (metrics and dimensions)
-      if (item.metrics && item.dimensions) {
-        console.log('ChartComponent: Detected TikTok data structure with nested metrics and dimensions');
-        
-        // Flatten dimensions
-        Object.entries(item.dimensions).forEach(([key, value]) => {
-          // For date fields, format them properly
-          if (key === 'stat_time_day' && typeof value === 'string') {
-            result[key] = formatDateString(value);
-          } else {
-            result[key] = value;
-          }
-        });
-        
-        // Flatten and convert metrics
-        Object.entries(item.metrics).forEach(([key, value]) => {
-          const numValue = typeof value === 'string' ? parseFloat(value as string) : value;
-          result[key] = !isNaN(numValue as number) ? numValue : value;
-        });
-      } 
-      // Handle flat structure (like Meta API)
-      else {
-        Object.assign(result, item);
-        
-        // Format date fields
-        ['date', 'date_start', 'date_stop', 'stat_time_day'].forEach(dateField => {
-          if (typeof result[dateField] === 'string') {
-            result[dateField] = formatDateString(result[dateField]);
-          }
-        });
-        
-        // Convert string metric values to numbers
-        metrics.forEach(metric => {
-          if (typeof result[metric] === 'string') {
-            const numValue = parseFloat(result[metric]);
-            if (!isNaN(numValue)) {
-              result[metric] = numValue;
-            }
-          }
-        });
-      }
-      
-      return result;
-    });
-  }, [data, metrics]);
+  // Transform data for charting
+  const transformedData = useMemo(() => 
+    transformChartData(data, metrics), 
+    [data, metrics]
+  );
 
+  // Log component rendering info
   useEffect(() => {
     console.log('ChartComponent: Rendering with data', data?.length ? `(${data.length} records)` : '(no data)');
     console.log('ChartComponent: Metrics to display:', metrics);
@@ -121,6 +55,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
     }
   }, [data, metrics, chartType, transformedData]);
 
+  // Show empty state when no data is available
   if (!transformedData || transformedData.length === 0) {
     console.log('ChartComponent: No data available, showing empty state');
     return (
@@ -132,55 +67,17 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
     );
   }
 
-  // Determine x-axis key if not provided
-  const determineXAxisKey = (): string => {
-    if (xAxisKey) return xAxisKey;
-    
-    // Try to find an appropriate x-axis key
-    const firstDataItem = transformedData[0];
-    
-    // If there's a time-related field, prefer that
-    const timeFields = ['date', 'date_start', 'day', 'month', 'year', 'stat_time_day'];
-    for (const field of timeFields) {
-      if (firstDataItem[field] !== undefined) return field;
-    }
-    
-    // Otherwise, use a categorical field
-    const categoryFields = [
-      'age', 'gender', 'country', 'country_code', 'region', 'dma', 
-      'impression_device', 'platform_position', 'publisher_platform',
-      'campaign_name', 'adgroup_name', 'ad_name'
-    ];
-    
-    for (const field of categoryFields) {
-      if (firstDataItem[field] !== undefined) return field;
-    }
-    
-    // Default to first key that's not a metric
-    const keys = Object.keys(firstDataItem);
-    for (const key of keys) {
-      if (!metrics.includes(key)) return key;
-    }
-    
-    // Last resort
-    return Object.keys(firstDataItem)[0];
-  };
-
-  const xKey = determineXAxisKey();
+  // Determine which field to use for x-axis
+  const xKey = determineXAxisKey(transformedData, metrics, xAxisKey);
   console.log('ChartComponent: Using x-axis key:', xKey);
 
-  // Sort data by date if the x-axis is a date field
-  const sortedData = useMemo(() => {
-    if (['date', 'date_start', 'stat_time_day'].includes(xKey)) {
-      return [...transformedData].sort((a, b) => {
-        if (!a[xKey] || !b[xKey]) return 0;
-        return new Date(a[xKey]).getTime() - new Date(b[xKey]).getTime();
-      });
-    }
-    return transformedData;
-  }, [transformedData, xKey]);
+  // Sort data by date if applicable
+  const sortedData = useMemo(() => 
+    sortChartDataByDate(transformedData, xKey), 
+    [transformedData, xKey]
+  );
 
-  // Customize chart based on chart type
+  // Render line chart
   if (chartType === 'line') {
     return (
       <Card className="w-full">
@@ -225,6 +122,7 @@ const ChartComponent: React.FC<ChartComponentProps> = ({
     );
   }
 
+  // Render bar chart (default)
   return (
     <Card className="w-full">
       <CardContent className="p-6">

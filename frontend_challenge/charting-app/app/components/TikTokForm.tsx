@@ -10,16 +10,14 @@ import {
   TIKTOK_DIMENSIONS,
   TIKTOK_LEVELS,
   TIKTOK_REPORT_TYPES,
-  TikTokRequestParams,
   fetchTikTokData
 } from '../lib/api';
+import type { TikTokRequestParams } from '../lib/types';
+import type { TikTokFormProps } from './types';
 
-interface TikTokFormProps {
-  onDataFetched: (data: any[], params: TikTokRequestParams) => void;
-  onLoading: (isLoading: boolean) => void;
-  onError: (error: string | null) => void;
-}
-
+/**
+ * Form component for TikTok ad data parameters
+ */
 const TikTokForm: React.FC<TikTokFormProps> = ({ onDataFetched, onLoading, onError }) => {
   const [metrics, setMetrics] = useState<string[]>(['spend', 'impressions', 'clicks', 'ctr']);
   const [dimensions, setDimensions] = useState<string[]>(['stat_time_day']);
@@ -29,6 +27,9 @@ const TikTokForm: React.FC<TikTokFormProps> = ({ onDataFetched, onLoading, onErr
   const [dateRange, setDateRange] = useState<{ from: string; to: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
+  /**
+   * Handle form submission - validate and fetch data from API
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     

@@ -1,123 +1,50 @@
-// API endpoints
-const BASE_URL = 'https://bizdev.newform.ai';
-const META_ENDPOINT = `${BASE_URL}/sample-data/meta`;
-const TIKTOK_ENDPOINT = `${BASE_URL}/sample-data/tiktok`;
+/**
+ * API client for fetching data from Meta and TikTok endpoints
+ */
+import { 
+  META_ENDPOINT, 
+  TIKTOK_ENDPOINT,
+  // Re-exporting constants for backwards compatibility 
+  DATE_RANGE_ENUMS,
+  META_METRICS,
+  META_BREAKDOWNS,
+  META_LEVELS,
+  META_TIME_INCREMENTS,
+  TIKTOK_METRICS,
+  TIKTOK_DIMENSIONS,
+  TIKTOK_LEVELS,
+  TIKTOK_REPORT_TYPES
+} from './constants';
 
-// META types
-export interface MetaRequestParams {
-  metrics: string[];
-  level: 'account' | 'campaign' | 'adset' | 'ad';
-  breakdowns?: string[];
-  timeIncrement?: '1' | '7' | '28' | 'monthly' | 'quarterly' | 'yearly' | 'all_days';
-  dateRangeEnum?: 'last7' | 'last14' | 'last30' | 'lifetime';
-  dateRange?: {
-    from: string;
-    to: string;
-  };
-}
+import type { 
+  MetaRequestParams, 
+  TikTokRequestParams, 
+  ApiResponse 
+} from './types';
 
-// TIKTOK types
-export interface TikTokRequestParams {
-  metrics: string[];
-  dimensions: string[];
-  level: 'AUCTION_ADVERTISER' | 'AUCTION_AD' | 'AUCTION_CAMPAIGN';
-  dateRangeEnum?: 'last7' | 'last14' | 'last30' | 'lifetime';
-  dateRange?: {
-    from: string;
-    to: string;
-  };
-  reportType?: 'BASIC' | 'AUDIENCE';
-}
+// Re-export types and constants for backwards compatibility
+export type { 
+  MetaRequestParams, 
+  TikTokRequestParams 
+};
 
-export interface ApiResponse {
-  data?: any[];
-  error?: string;
-}
+export { 
+  DATE_RANGE_ENUMS,
+  META_METRICS,
+  META_BREAKDOWNS,
+  META_LEVELS,
+  META_TIME_INCREMENTS,
+  TIKTOK_METRICS,
+  TIKTOK_DIMENSIONS,
+  TIKTOK_LEVELS,
+  TIKTOK_REPORT_TYPES
+};
 
-// Define date range enums for both platforms
-export const DATE_RANGE_ENUMS = ['last7', 'last14', 'last30', 'lifetime'];
-
-// Valid parameters for Meta and TikTok APIs
-export const META_METRICS = [
-  'spend',
-  'impressions',
-  'clicks',
-  'ctr',
-  'cpc',
-  'reach',
-  'frequency',
-  'conversions',
-  'cost_per_conversion',
-  'conversion_rate',
-  'actions',
-  'cost_per_action_type',
-];
-
-export const META_BREAKDOWNS = [
-  'age',
-  'gender',
-  'country',
-  'region',
-  'dma',
-  'impression_device',
-  'platform_position',
-  'publisher_platform',
-];
-
-export const META_LEVELS = ['account', 'campaign', 'adset', 'ad'];
-
-export const META_TIME_INCREMENTS = [
-  '1',
-  '7',
-  '28',
-  'monthly',
-  'quarterly',
-  'yearly',
-  'all_days',
-];
-
-export const TIKTOK_METRICS = [
-  'spend',
-  'impressions',
-  'clicks',
-  'conversions',
-  'cost_per_conversion',
-  'conversion_rate',
-  'ctr',
-  'cpc',
-  'reach',
-  'frequency',
-  'skan_app_install',
-  'skan_cost_per_app_install',
-  'skan_purchase',
-  'skan_cost_per_purchase',
-];
-
-export const TIKTOK_DIMENSIONS = [
-  'ad_id',
-  'campaign_id',
-  'adgroup_id',
-  'advertiser_id',
-  'stat_time_day',
-  'campaign_name',
-  'adgroup_name',
-  'ad_name',
-  'country_code',
-  'age',
-  'gender',
-  'province_id',
-  'dma_id',
-];
-
-export const TIKTOK_LEVELS = [
-  'AUCTION_ADVERTISER',
-  'AUCTION_CAMPAIGN',
-  'AUCTION_AD',
-];
-
-export const TIKTOK_REPORT_TYPES = ['BASIC', 'AUDIENCE'];
-
-// API functions
+/**
+ * Fetches data from the Meta API
+ * @param params - The request parameters for the Meta API
+ * @returns A promise containing either the data or an error message
+ */
 export async function fetchMetaData(params: MetaRequestParams): Promise<ApiResponse> {
   console.log('Fetching Meta data with params:', params);
   try {
@@ -125,8 +52,6 @@ export async function fetchMetaData(params: MetaRequestParams): Promise<ApiRespo
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // The assignment mentions no token required for now
-        // 'Authorization': 'Bearer NEWFORMCODINGCHALLENGE',
       },
       body: JSON.stringify(params),
     });
@@ -160,6 +85,11 @@ export async function fetchMetaData(params: MetaRequestParams): Promise<ApiRespo
   }
 }
 
+/**
+ * Fetches data from the TikTok API
+ * @param params - The request parameters for the TikTok API
+ * @returns A promise containing either the data or an error message
+ */
 export async function fetchTikTokData(params: TikTokRequestParams): Promise<ApiResponse> {
   console.log('Fetching TikTok data with params:', params);
   try {
@@ -167,8 +97,6 @@ export async function fetchTikTokData(params: TikTokRequestParams): Promise<ApiR
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        // The assignment mentions no token required for now
-        // 'Authorization': 'Bearer NEWFORMCODINGCHALLENGE',
       },
       body: JSON.stringify(params),
     });

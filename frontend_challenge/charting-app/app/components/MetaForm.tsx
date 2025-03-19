@@ -10,16 +10,14 @@ import {
   META_BREAKDOWNS,
   META_LEVELS,
   META_TIME_INCREMENTS,
-  MetaRequestParams,
   fetchMetaData
 } from '../lib/api';
+import type { MetaRequestParams } from '../lib/types';
+import type { MetaFormProps } from './types';
 
-interface MetaFormProps {
-  onDataFetched: (data: any[], params: MetaRequestParams) => void;
-  onLoading: (isLoading: boolean) => void;
-  onError: (error: string | null) => void;
-}
-
+/**
+ * Form component for Meta ad data parameters
+ */
 const MetaForm: React.FC<MetaFormProps> = ({ onDataFetched, onLoading, onError }) => {
   const [metrics, setMetrics] = useState<string[]>(['spend', 'impressions', 'clicks']);
   const [breakdowns, setBreakdowns] = useState<string[]>(['age']);
@@ -29,6 +27,9 @@ const MetaForm: React.FC<MetaFormProps> = ({ onDataFetched, onLoading, onError }
   const [dateRange, setDateRange] = useState<{ from: string; to: string } | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
+  /**
+   * Handle form submission - validate and fetch data from API
+   */
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     

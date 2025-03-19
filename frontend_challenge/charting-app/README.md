@@ -24,7 +24,7 @@ A modern front-end application for visualizing and analyzing Meta and TikTok ad 
 1. Clone the repository:
 ```bash
 git clone <repository-url>
-cd charting-app
+cd frontend_challenge/charting-app
 ```
 
 2. Install dependencies:
@@ -75,9 +75,7 @@ The application follows a component-based architecture:
 
 This project was developed with the assistance of Claude 3.7 Sonnet in Cursor, which helped with:
 
-- Scaffolding the project structure
 - Implementing shadcn/ui components
-- Creating the API client with proper typing
 - Building responsive UI layouts
 - Debugging and refinement
 
